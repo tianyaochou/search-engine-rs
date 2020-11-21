@@ -2,6 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
+use std::ops::Deref;
 use std::vec::Vec;
 
 use walkdir::WalkDir;
@@ -12,6 +13,7 @@ use rayon::prelude::*;
 
 use mailparse::*;
 
+use rust_stemmers::Stemmer;
 use rust_tokenizers::tokenizer::{BertTokenizer, Tokenizer};
 use rust_tokenizers::vocab::{BertVocab, Vocab};
 use stopwords::{Language, Spark, Stopwords};
@@ -35,6 +37,7 @@ fn main() -> io::Result<()> {
     let vocab_path = BERT_VOCAB_PATH;
     let vocab = BertVocab::from_file(&vocab_path).expect("Failed to load vocab");
     let tokenizer = BertTokenizer::from_existing_vocab(vocab, true, false);
+    let stemmer = Stemmer::create(rust_stemmers::Algorithm::English);
     let stops: HashSet<_> = Spark::stopwords(Language::English)
         .unwrap()
         .iter()
@@ -95,7 +98,9 @@ fn main() -> io::Result<()> {
                     tokens.extend(content_tokens);
                     let tokens: Vec<String> = tokens
                         .into_iter()
+                        .map(|s| stemmer.stem(&s).to_string())
                         .filter(|x| !stops.contains(x) && x.len() > 1)
+                        .map(|s| s.to_string())
                         .collect();
                     let token_ids = tokenizer.convert_tokens_to_ids(tokens);
                     let _ = token_tx.send((path, token_ids));
@@ -146,8 +151,9 @@ fn main() -> io::Result<()> {
     let handle = std::thread::spawn(move || {
         let mut process_count = 0;
         let mut index: HashMap<TokenID, HashSet<FileID>> = HashMap::new();
+        let mut all_token_ids = HashSet::new();
         for (file_id, token_ids) in count_rx {
-            for token_id in token_ids {
+            for token_id in &token_ids {
                 match index.get_mut(&token_id) {
                     Some(s) => {
                         s.insert(file_id);
@@ -155,16 +161,25 @@ fn main() -> io::Result<()> {
                     None => {
                         let mut s = HashSet::new();
                         s.insert(file_id);
-                        index.insert(token_id, s);
+                        index.insert(*token_id, s);
                     }
                 }
             }
+            all_token_ids.extend(token_ids);
             process_count += 1;
-            print!("\rProcess file: {}", process_count);
-            // if process_count == 100000 {
-            //     break;
-            // }
+            eprint!("\rProcess file: {}", process_count);
+            db.insert(
+                bincode_config.serialize("file_count").unwrap().as_slice(),
+                bincode_config.serialize(&process_count).unwrap().as_slice(),
+            )
+            .unwrap();
         }
+
+        db.insert(
+            bincode_config.serialize("tokens").unwrap().as_slice(),
+            bincode_config.serialize(&all_token_ids).unwrap().as_slice(),
+        ).unwrap();
+
         for (token_id, set) in &index {
             tf_df_tree1
                 .insert(

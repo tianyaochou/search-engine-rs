@@ -98,7 +98,7 @@ fn main() -> io::Result<()> {
                     tokens.extend(content_tokens);
                     let tokens: Vec<String> = tokens
                         .into_iter()
-                        .map(|s| stemmer.stem(&s).to_string())
+                        // TODO: .map(|s| stemmer.stem(&s).to_string())
                         .filter(|x| !stops.contains(x) && x.len() > 1)
                         .map(|s| s.to_string())
                         .collect();
@@ -131,8 +131,8 @@ fn main() -> io::Result<()> {
             for (token, tf) in &token_frequncies {
                 tf_df_tree
                     .insert(
-                        bincode::serialize(&(file_id, *token)).unwrap().as_slice(),
-                        &tf.to_be_bytes(),
+                        bincode_config.serialize(&(file_id, *token)).unwrap().as_slice(),
+                        bincode_config.serialize(tf).unwrap().as_slice(),
                     )
                     .unwrap();
             }
@@ -140,9 +140,6 @@ fn main() -> io::Result<()> {
             count_tx
                 .send((file_id, token_ids))
                 .expect("Count send failed");
-            // if process_count == 100000 {
-            //     break;
-            // }
         }
     });
 

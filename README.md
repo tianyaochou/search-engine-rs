@@ -27,12 +27,20 @@ cargo run --release --bin index dataset/maildir
 
 Bool Search
 
-Estimated memory usage is 2.5GB.
+Support And `&` Or `|` Diff `-` operators
 
 ```
+# in project root
 cargo run --release --bin bool_search
 ```
 
 When seeing `Q>`, type query and hit enter
 
-For the present, only support AND logic
+Semantic Search
+
+```
+# in project root
+cargo run --release --bin semantic_search
+```
+
+When seeing `Q>`, type query and hit enter, keywords are seperated by space

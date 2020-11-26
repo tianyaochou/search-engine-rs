@@ -6,6 +6,9 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[build-dependencies]
+lalrpop = { version = "0.19.0", features = ["lexer"] }
+
 [dependencies]
 clap = "*"
 rust-stemmers = "*"
@@ -18,8 +21,9 @@ crossbeam = "*"
 priority-queue = "*"
 sled = { version = "*", features = ["compression"] }
 bincode = "*"
-papyrus = "*"
 text_io = "*"
 serde = "*"
-regex = "*"
 nom = "*"
+ordered-float = "*"
+lalrpop-util = "0.19.0"
+regex = "1"

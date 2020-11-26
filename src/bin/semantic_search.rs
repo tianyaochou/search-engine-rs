@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::ops::Deref;
 
 use rust_stemmers::Stemmer;
 use rust_tokenizers::tokenizer::{BertTokenizer, Tokenizer};
@@ -11,7 +10,6 @@ use bincode::config::Options;
 use sled;
 
 use crossbeam;
-use rayon::iter::ParallelBridge;
 use rayon::prelude::*;
 
 use text_io::try_read;
@@ -95,15 +93,6 @@ fn main() {
             intersection = intersection.intersection(s).map(|x| *x).collect();
         }
 
-        let all_tokens: HashSet<i64> = bincode_config
-            .deserialize(
-                db.get(bincode_config.serialize("tokens").unwrap())
-                    .unwrap()
-                    .unwrap()
-                    .to_vec()
-                    .as_slice(),
-            )
-            .unwrap();
         let file_count: i32 = bincode_config
             .deserialize(
                 db.get(bincode_config.serialize("file_count").unwrap())

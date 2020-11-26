@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::ops::Deref;
 use std::vec::Vec;
 
 use walkdir::WalkDir;
@@ -13,7 +12,7 @@ use rayon::prelude::*;
 
 use mailparse::*;
 
-use rust_stemmers::Stemmer;
+// use rust_stemmers::Stemmer;
 use rust_tokenizers::tokenizer::{BertTokenizer, Tokenizer};
 use rust_tokenizers::vocab::{BertVocab, Vocab};
 use stopwords::{Language, Spark, Stopwords};
@@ -25,8 +24,8 @@ use sled;
 pub static BERT_VOCAB_PATH: &str = "./bert.txt";
 pub static DB_PATH: &str = "output/db";
 
-type TokenID = i64;
-type FileID = u64;
+pub type TokenID = i64;
+pub type FileID = u64;
 
 fn main() -> io::Result<()> {
     let process_dir = match std::env::args().nth(1) {
@@ -37,7 +36,7 @@ fn main() -> io::Result<()> {
     let vocab_path = BERT_VOCAB_PATH;
     let vocab = BertVocab::from_file(&vocab_path).expect("Failed to load vocab");
     let tokenizer = BertTokenizer::from_existing_vocab(vocab, true, false);
-    let stemmer = Stemmer::create(rust_stemmers::Algorithm::English);
+    // let stemmer = Stemmer::create(rust_stemmers::Algorithm::English);
     let stops: HashSet<_> = Spark::stopwords(Language::English)
         .unwrap()
         .iter()

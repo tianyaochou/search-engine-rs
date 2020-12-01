@@ -4,7 +4,7 @@ Web Info search engine project
 
 ## Build
 
-Prerequisites: rust, cargo
+Prerequisites: rust nightly channel, cargo
 
 ```bash
 cargo build --release
@@ -20,7 +20,7 @@ Generated index takes up about 5 GB.
 ```
 # PWD: project root
 ln -s path-to-maildir dataset
-cargo run --release --bin index dataset/maildir
+cargo run --release --bin index dataset
 ```
 
 `dataset/maildir` is the directory of data

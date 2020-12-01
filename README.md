@@ -15,7 +15,7 @@ cargo build --release
 First, link data directory in dataset, then generate index.
 
 Running time is estimated 10 minutes on 2.3 GHz Quad-Core Intel Core i5 and memory usage is peaked at 7 GB.
-Generated index takes up about 10 GB.
+Generated index takes up about 5 GB.
 
 ```
 # PWD: project root
@@ -34,7 +34,7 @@ Support And `&` Or `|` Diff `-` operators
 cargo run --release --bin bool_search
 ```
 
-When seeing `Q>`, type query and hit enter
+When seeing `Q>`, type query and hit enter, `Ctrl-C` to quit.
 
 Semantic Search
 
@@ -43,4 +43,4 @@ Semantic Search
 cargo run --release --bin semantic_search
 ```
 
-When seeing `Q>`, type query and hit enter, keywords are seperated by space
+When seeing `Q>`, type query and hit enter, keywords are seperated by space, `Ctrl-C` to quit.

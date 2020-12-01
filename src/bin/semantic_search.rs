@@ -68,6 +68,7 @@ fn main() {
             .collect();
         let token_ids = tokenizer.convert_tokens_to_ids(&tokens);
 
+        // Get files of term in query
         let mut sets: Vec<HashSet<u64>> = token_ids
             .iter()
             .map(|token_id| -> HashSet<u64> {
@@ -84,13 +85,13 @@ fn main() {
             })
             .collect();
 
-        let mut intersection: HashSet<u64> = match sets.pop() {
+        let mut union: HashSet<u64> = match sets.pop() {
             Some(f) => f,
             _ => HashSet::new(),
         };
 
         for s in &sets {
-            intersection = intersection.intersection(s).map(|x| *x).collect();
+            union = union.union(s).map(|x| *x).collect();
         }
 
         let file_count: i32 = bincode_config
@@ -108,8 +109,8 @@ fn main() {
         let (tx, rx) = crossbeam::channel::bounded(1024);
         let tf_df_tree1 = tf_df_tree.clone();
         std::thread::spawn(move || {
-            intersection.into_par_iter().for_each(|each_file| {
-                let (ab, a, b) = token_ids      //all_tokens
+            union.into_par_iter().for_each(|each_file| {
+                let (ab, a, b) = token_ids
                     .par_iter()
                     .map(|each_token| {
                         let tf_raw: u64 = bincode_config
@@ -128,10 +129,8 @@ fn main() {
                             )
                             .unwrap_or(0);
                         let mut tf = 0.0;
-                        //eprintln!("tf_raw={}", tf_raw);
                         if tf_raw != 0 {
                             tf = 1.0 + (tf_raw as f32).log10();
-                            // eprintln!("tf={}", tf);
                         }
                         let df: usize = bincode_config
                             .deserialize(
@@ -143,7 +142,6 @@ fn main() {
                                     .as_slice(),
                             )
                             .unwrap();
-                        // eprintln!("df={}", df);
                         let tfidf = tf * (file_count as f32 / df as f32).log10();
                         (each_token, tfidf)
                     })
@@ -167,15 +165,12 @@ fn main() {
                             (ab1 + ab2, a1 + a2, b1 + b2)
                         },
                     );
-                //
                 let cos = ab / (a.sqrt() * b.sqrt());
-                // eprintln!("Sent {}", each_file);
                 tx.send((each_file, cos)).unwrap();
             })
         });
 
         for (each_file, cos) in rx {
-            // eprintln!("Pushed: {}", each_file);
             cos_pq.push(each_file, OrderedFloat::from(cos));
         }
 

@@ -111,7 +111,7 @@ fn main() -> io::Result<()> {
         });
     });
 
-    // count token frequencies, get first 1000 words
+    // count token frequencies
     let (count_tx, count_rx) = crossbeam::channel::bounded(1024);
     let tf_df_tree = db.open_tree("tf_df").unwrap();
     let tf_df_tree1 = tf_df_tree.clone();

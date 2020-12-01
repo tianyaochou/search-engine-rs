@@ -1,0 +1,21 @@
+use search_engine::aaa::Query;
+
+grammar;
+
+pub Query: Query = { 
+    <l:Query> r"|" <r:Clause> => Query::Or(Box::new(l), Box::new(r)),
+    Clause => <>,
+};
+
+Clause: Query = {
+    <l:Clause> r"&" <r:Factor> => Query::And(Box::new(l), Box::new(r)),
+    <l:Clause> r"-" <r:Factor> => Query::Diff(Box::new(l), Box::new(r)),
+    Factor => <>,
+};
+
+Factor: Query = {
+    KeyWord => Query::KeyWord(<>),
+    "(" <q:Query> ")" => q,
+};
+
+KeyWord: String = r"[a-zA-Z0-9]+" => <>.to_string();

@@ -20,7 +20,7 @@ Generated index takes up about 5 GB.
 ```
 # PWD: project root
 ln -s path-to-maildir dataset
-cargo run --release --bin index dataset
+cargo run --release --bin index dataset/maildir
 ```
 
 `dataset/maildir` is the directory of data
